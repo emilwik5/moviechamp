@@ -1,0 +1,476 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { getUserData } from '../../../../firebase/clientApp';
+import { getMoviePosterUrl } from '../../movies/tmdb';
+import AddFriend from '../../../../public/SVGS/add.svg';
+import SearchImage from '../../../../public/SVGS/search.svg';
+import { auth, db } from '../../../../firebase/clientApp';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { doc, updateDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
+import Link from 'next/link';
+
+
+// Gets and renders friends
+const fetchFriends = async (friendIds) => {
+  if (!friendIds || friendIds.length === 0) {
+    return <div></div>;
+  }
+
+  const friends = await Promise.all(
+    friendIds.map(async (id) => {
+      const friendData = await getUserData(id);
+      return friendData;
+    })
+  );
+
+  return friends.map((friend) => (
+    <Link href={`/profile/` + friend.uid} key={friend.uid} className="rounded-xl h-full w-full hover:scale-110 hover:brightness-110 transition duration-500 ease-out will-change-transform hover:ring-2"
+      style={{
+        backgroundImage: `url(${friend.photoURL})`,
+        backgroundSize: 'cover'
+      }}>
+    </Link>
+  ));
+};
+
+function DisplayValue(message, value){
+  const html = [];
+
+  html.push(
+    <div className="flex flex-row justify-around items-center h-[20%] w-full m-2">
+      <div className="flex justify-center items-center h-full w-4/5 bg-black/20 rounded-xl">{message}</div>
+      <div className="flex justify-center items-center rounded-xl h-full w-24 bg-black/40 text-4xl text-yellow-500/90">{value}</div>
+    </div>
+  )
+
+  return html
+
+};
+
+function DisplayValueVersus(valueUser, message, valueOther){
+  const html = [];
+
+  html.push(
+    <div className="flex flex-row justify-around items-center h-[20%] w-full m-2">
+      <div className="flex justify-center items-center rounded-xl h-full w-20 bg-black/40 text-4xl text-green-400/90">{valueUser}</div>
+        <div className="flex justify-center items-center h-full w-2/3 bg-black/20 rounded-xl">{message}</div>
+      <div className="flex justify-center items-center rounded-xl h-full w-24 bg-black/40 text-4xl text-red-500/90">{valueOther}</div>
+    </div>
+  )
+
+  return html
+
+};
+
+
+// Gets and renders the current user collection
+const fetchCollectionSquares = async (movieIds) => {
+  const movies = [];
+
+  if (movieIds && movieIds.length > 0) {
+    const fetchedMovies = await Promise.all(
+      //Get the 9 LATEST additions to the users collection
+      movieIds.slice(Math.max(movieIds.length - 9, 0)).map(async (id) => {
+        const posterUrl = await getMoviePosterUrl(id, 154);
+        return { id, posterUrl };
+      })
+    );
+    movies.push(...fetchedMovies);
+  }
+
+  // Only render up to 9 movies, then add a number if its more than that
+  let extraCount = 0;
+  if(movieIds != undefined){
+    extraCount = movieIds.length - 9;
+  }
+
+  if (extraCount > 0) {
+    movies.push({ id: 'extra-count', posterUrl: null, extraCount });
+  }
+
+  while (movies.length < 10) {
+    movies.push({ id: `placeholder-${movies.length}`, posterUrl: null });
+  }
+
+  return movies.map((movie) => {
+    if (movie.id === 'extra-count') {
+      return (
+        <div
+          key={movie.id}
+          className="h-full w-full flex items-center justify-center bg-black/60 rounded-xl hover:scale-110 duration-300 transition ease-out hover:bg-slate-700/90 hover:brightness-125 will-change-transform"
+        >
+          +{movie.extraCount}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={movie.id}
+        className="h-full w-full bg-slate-600/60 rounded-xl hover:scale-110 duration-300 transition ease-out hover:bg-slate-500/90 hover:brightness-125 will-change-transform"
+        style={{
+          backgroundImage: movie.posterUrl ? `url(${movie.posterUrl})` : 'none',
+          backgroundSize: 'cover',
+          backgroundColor: movie.posterUrl ? 'transparent' : 'rgba(0, 0, 0, 0.2)',
+        }}
+      ></div>
+    );
+  });
+};
+
+// Gets and renders the current user collection
+const fetchWatchlistSquares = async (movieIds) => {
+  const movies = [];
+
+  if (movieIds && movieIds.length > 0) {
+    const fetchedMovies = await Promise.all(
+      //Get the 9 LATEST additions to the users collection
+      movieIds.slice(Math.max(movieIds.length - 9, 0)).map(async (id) => {
+        const posterUrl = await getMoviePosterUrl(id, 154);
+        return { id, posterUrl };
+      })
+    );
+    movies.push(...fetchedMovies);
+  }
+
+  // Only render up to 9 movies, then add a number if its more than that
+  let extraCount = 0;
+  if(movieIds != undefined){
+    extraCount = movieIds.length - 9;
+  }
+
+  if (extraCount > 0) {
+    movies.push({ id: 'extra-count', posterUrl: null, extraCount });
+  }
+
+  while (movies.length < 10) {
+    movies.push({ id: `placeholder-${movies.length}`, posterUrl: null });
+  }
+
+  return movies.map((movie) => {
+    if (movie.id === 'extra-count') {
+      return (
+        <div
+          key={movie.id}
+          className="h-full w-full flex items-center justify-center bg-black/60 rounded-xl hover:scale-110 duration-300 transition ease-out hover:bg-slate-700/90 hover:brightness-125 will-change-transform"
+        >
+          +{movie.extraCount}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={movie.id}
+        className="h-full w-full bg-slate-600/60 rounded-xl hover:scale-110 duration-300 transition ease-out hover:bg-slate-500/90 hover:brightness-125 will-change-transform"
+        style={{
+          backgroundImage: movie.posterUrl ? `url(${movie.posterUrl})` : 'none',
+          backgroundSize: 'cover',
+          backgroundColor: movie.posterUrl ? 'transparent' : 'rgba(0, 0, 0, 0.2)',
+        }}
+      ></div>
+    );
+  });
+};
+
+// Get and render friend requests if they exist in the users FriendRequests : string = []
+const fetchPlaceholderFriendRequests = async (friendRequestIds) => {
+  const friendRequests = [];
+
+  const friendDataList = await Promise.all(
+    friendRequestIds.map(async (id) => {
+      const friendData = await getUserData(id);
+      return friendData;
+    })
+  );
+
+  for (const friendData of friendDataList) {
+    const html = (
+      <div key={`friendReq_${friendData.uid}`} className="flex flex-row w-full h-20 rounded-md bg-green-800/20 backdrop-blur-2xl ring-2 ring-green-700 overflow-clip justify-center items-center mb-6">
+        <div className="flex flex-col w-full h-full pl-3 items-start justify-center">
+          <div className="text-xl text-right uppercase">
+            {friendData.displayName}
+          </div>
+          <div className="flex flex-row w-full gap-4 h-10 justify-start items-center">
+            <button
+              onClick={async () => {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                  await acceptFriendRequest(currentUser.uid, friendData.uid);
+                }
+              }}
+              className="flex justify-center items-center text-black/70 bg-green-600/80 w-24 min-h-8 max-h-12 my-1 rounded-md text-center transition duration-500 ease-out hover:text-white/70 hover:brightness-150 hover:scale-110 will-change-transform"
+            >
+              ACCEPT
+            </button>
+            <button
+              onClick={async () => {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                  await declineFriendRequest(currentUser.uid, friendData.uid);
+                }
+              }}
+              className="flex justify-center items-center text-black/70 bg-red-600/80 w-8 min-h-8 max-h-12 my-1 rounded-md text-center transition duration-300 ease-out hover:text-white/70 hover:brightness-150 hover:scale-110 will-change-transform"
+            >
+              X
+            </button>
+          </div>
+        </div>
+        <div className="flex w-2/6 h-full mr-1 justify-center items-center content-center">
+          <div className="h-16 w-16 rounded-md bg-slate-600/50 m-1 transition duration-500 ease-out hover:text-white/70 hover:brightness-150 hover:scale-110 will-change-transform" style={{ backgroundImage: `url(${friendData.photoURL})`, backgroundSize: 'cover' }}></div>
+        </div>
+      </div>
+    );
+
+    friendRequests.push(html);
+  }
+
+  return friendRequests;
+};
+
+const acceptFriendRequest = async (currentUserId, friendUserId) => {
+  const currentUserRef = doc(db, 'users', currentUserId);
+  const friendUserRef = doc(db, 'users', friendUserId);
+
+  await updateDoc(currentUserRef, {
+    friends: arrayUnion(friendUserId),
+    friendRequests: arrayRemove(friendUserId)
+  });
+
+  await updateDoc(friendUserRef, {
+    friends: arrayUnion(currentUserId)
+  });
+};
+
+const declineFriendRequest = async (currentUserId, friendUserId) => {
+  const currentUserRef = doc(db, 'users', currentUserId);
+
+  await updateDoc(currentUserRef, {
+    friendRequests: arrayRemove(friendUserId)
+  });
+};
+
+const addFriendRequest = async (currentUserId, targetUserId) => {
+  const targetUserRef = doc(db, 'users', targetUserId);
+
+  await updateDoc(targetUserRef, {
+    friendRequests: arrayUnion(currentUserId)
+  });
+};
+
+const UserProfile = ({ userId }) => {
+  const [user, setUser] = useState(null);
+  const [currentUser] = useAuthState(auth);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [collectionSquares, setCollectionSquares] = useState([]);
+  const [watchlistSquares, setWatchlistSquares] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [isFriendRequestSent, setIsFriendRequestSent] = useState(false);
+  const [isAlreadyFriend, setIsAlreadyFriend] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const userData = await getUserData(userId);
+      setUser(userData);
+
+      if (currentUser) {
+        const currentUserData = await getUserData(currentUser.uid);
+        setCurrentUserData(currentUserData);
+
+        if (userData.friendRequests && userData.friendRequests.includes(currentUser.uid)) {
+          setIsFriendRequestSent(true);
+        }
+        if (userData.friends && userData.friends.includes(currentUser.uid)) {
+          setIsAlreadyFriend(true);
+        }
+      }
+
+      const collection = await fetchCollectionSquares(userData.collection);
+      setCollectionSquares(collection);
+
+      const watchlist = await fetchWatchlistSquares(userData.watchlist);
+      setWatchlistSquares(watchlist);
+
+      if (currentUser && currentUser.uid === userId) {
+        const requests = await fetchPlaceholderFriendRequests(userData.friendRequests || []);
+        setFriendRequests(requests);
+      }
+
+      const friendsList = await fetchFriends(userData.friends || []);
+      setFriends(friendsList);
+    };
+
+    fetchData();
+  }, [userId, currentUser]);
+
+  const handleAddFriend = async () => {
+    if (currentUser) {
+      await addFriendRequest(currentUser.uid, userId);
+      setIsFriendRequestSent(true);
+    }
+  };
+
+  if (!user || (currentUser && !currentUserData)) {
+    return <div>Loading...</div>;
+  }
+
+  const userPhoto = user.photoURL.slice(0, -5) + 's256-c'; //This is a really really awfully bad way to get HQ images from google but whatever we ship in a week
+
+  const collectionAmt = user.collection ? user.collection.length : 0;
+  const watchlistAmt = user.watchlist ? user.watchlist.length : 0;
+  const friendAmt = user.friends ? user.friends.length : 0;
+
+  const currentUserCollectionAmt = currentUserData.collection ? currentUserData.collection.length : 0;
+  const currentUserWatchlistAmt = currentUserData.watchlist ? currentUserData.watchlist.length : 0;
+  const currentUserRatedAmt = currentUserData.rated ? currentUserData.rated.length : 0; // Assuming you have a rated field
+  const commonCollectionMovies = user.collection ? user.collection.filter(movie => currentUserData.collection.includes(movie)).length : 0;
+  const commonWatchlistMovies = user.watchlist ? user.watchlist.filter(movie => currentUserData.watchlist.includes(movie)).length : 0;
+
+
+  const ratedAmt = "0";
+
+  return (
+    <div className="flex w-screen h-screen items-center justify-end">
+      {/* Game REQUEST SECTION */}
+      <div className=" w-1/6 h-full self-end pt-[6%] pb-[4%] px-4">
+        
+        <div className="flex flex-row mx-auto text-center pb-6 justify-evenly items-center">
+          <div className="text-2xl">DEBUG TEMPORARY LINKS</div>
+        </div>
+
+        <div className="flex flex-col w-full h-full gap-2">
+          <Link href="/profile/demo-user" className="rounded-xl flex justify-center items-center w-full h-20 bg-black/20 transition duration-500 ease-out hover:bg-slate-600/50 hover:text-white/80 hover:stroke-white/80 hover:fill-white/80 hover:brightness-150 hover:scale-110 will-change-transform">
+            Emil's profil
+          </Link>
+          <Link href="/profile/demo-user" className="rounded-xl flex justify-center items-center w-full h-20 bg-black/20 transition duration-500 ease-out hover:bg-slate-600/50 hover:text-white/80 hover:stroke-white/80 hover:fill-white/80 hover:brightness-150 hover:scale-110 will-change-transform">
+            Victor Persson's profil
+          </Link>
+          <Link href="/profile/demo-user" className="rounded-xl flex justify-center items-center w-full h-20 bg-black/20 transition duration-500 ease-out hover:bg-slate-600/50 hover:text-white/80 hover:stroke-white/80 hover:fill-white/80 hover:brightness-150 hover:scale-110 will-change-transform">
+            Vicke Pee's profil
+          </Link>
+          <Link href="/profile/demo-user" className="rounded-xl flex justify-center items-center w-full h-20 bg-black/20 transition duration-500 ease-out hover:bg-slate-600/50 hover:text-white/80 hover:stroke-white/80 hover:fill-white/80 hover:brightness-150 hover:scale-110 will-change-transform">
+            Profil med Tom Collection
+          </Link>
+        </div>
+
+      </div>
+      {/*=======================================================================================================================================================*/}
+      {/* MAIN SECTION */}
+      {/*=======================================================================================================================================================*/}
+      
+      
+      
+      <div className="grid grid-cols-2 grid-rows-4 items-center justify-items-center h-full w-4/6 bg-black/40 backdrop-blur-2xl pt-[7%] pb-[4%]">
+        {/* WATCHLIST (TL) */}
+        <div className="flex flex-col justify-around items-center h-[95%] w-[95%]">
+          <div className="text-xl uppercase mb-3">{user.displayName.split(' ')[0]}'s WatchList</div>
+          <div className="text-3xl h-full w-full bg-black/30 rounded-xl p-4">
+            <div className="grid grid-cols-5 grid-rows-2 gap-3 h-full w-full justify-around">
+              {watchlistSquares}
+            </div>
+          </div>
+        </div>
+
+        {/*=======================================================================================================================================================*/}
+        {/* PROFILE (TR) */}
+        <div className="flex flex-col items-center h-[95%] w-[95%] ">
+          <div className="flex flex-row w-full h-2/5 justify-end text-baseline items-center bg-black/30 rounded-xl">
+            <div className="flex flex-col h-full w-2/3 justify-center items-center">
+              <div className="text-5xl uppercase my-5">{user.displayName}</div>
+              <div className="text-sm text-white/20">Unique UID: {user.uid}</div>
+            </div>
+
+            <div
+              className="rounded-lg w-[26%] h-[87%] bg-cover bg-center m-2 self-center"
+              style={{ backgroundImage: `url(${userPhoto})` }}
+              alt={user.displayName}
+            ></div>
+          </div>
+          
+          {currentUser && currentUser.uid !== userId && !isAlreadyFriend && (
+            <div
+              onClick={handleAddFriend}
+              className={`flex justify-center m-4 items-center ${isFriendRequestSent ? 'bg-gray-500' : 'bg-blue-500/60 hover:bg-blue-500/90'} rounded-xl h-1/2 w-1/2 col-span-2 ${!isFriendRequestSent && 'hover:scale-110 transition duration-500 ease-out'} will-change-transform cursor-pointer`}
+            >
+              <div className="flex flex-row justify-center content-center items-center align-middle">
+                <div className="uppercase font-bold">{isFriendRequestSent ? 'Friend Request Sent' : 'Add friend'}</div>
+                <AddFriend className={`size-8 mx-2 ${isFriendRequestSent ? 'fill-gray-300' : 'fill-white'}`}></AddFriend>
+              </div>
+            </div>
+          )}
+          <div className="flex w-full flex-row justify-start">
+            <div className="text-start self-start mt-3 mb-1 uppercase w-1/5 py-2">Friends</div>
+            <div className="self-start mt-3 mb-1 uppercase text-center text-white/50 bg-black/30 p-2 w-10 rounded-xl">{friendAmt}</div>
+          </div>
+          <div className="grid grid-cols-4 grid-rows-2 gap-2 w-full h-full bg-black/30 p-2 rounded-xl">
+            {friends}
+          </div>
+        </div>
+
+        {/*=======================================================================================================================================================*/}
+        {/* COLLECTION (BL) */}
+        <div className="flex flex-col items-center h-[95%] w-[95%]">
+          <div className="text-xl uppercase mb-3">{user.displayName.split(' ')[0]}'s Collection</div>
+          <div className="text-3xl h-full w-full bg-black/30 rounded-xl p-4">
+            <div className="grid grid-cols-5 grid-rows-2 gap-3 h-full w-full justify-around">
+              {collectionSquares}
+            </div>
+          </div>
+        </div>
+
+        {/*=======================================================================================================================================================*/}
+        {/* STATISTICS (BR) */}
+          <div className="flex flex-col items-center h-[95%] w-[95%] justify-center text-3xl">
+
+            {currentUser && currentUser.uid === userId ? (
+              <div className="flex flex-col items-center h-[95%] w-[95%] justify-evenly text-3xl">
+                {DisplayValue("MOVIES IN YOUR COLLECTION", collectionAmt)}
+                {DisplayValue("MOVIES IN YOUR WATCHLIST", watchlistAmt)}
+                {DisplayValue("MOVIES YOU'VE RATED", collectionAmt)}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center h-[95%] w-[95%] justify-center text-3xl">
+              <div className="flex flex-row justify-evenly items-center h-1/6 w-full bg-gradient-to-r from-green-900/30 to-red-900/30 via-black/50 rounded-xl uppercase m-2">
+                <div className="flex justify-center items-center rounded-xl h-20 w-24 text-xl">you</div>
+                <div className="flex justify-center items-center h-20 w-2/3 rounded-xl">vs.</div>
+                <div className="flex justify-center items-center rounded-xl h-20 w-24 text-xl">{user.displayName.split(' ')[0]}</div>
+              </div>
+
+              {DisplayValueVersus(currentUserCollectionAmt,"MOVIES IN COLLECTION", collectionAmt)}
+              {DisplayValueVersus(currentUserWatchlistAmt, "MOVIES IN WATCHLIST", watchlistAmt)}
+              {DisplayValueVersus(currentUserCollectionAmt,"MOVIES RATED", collectionAmt)}
+              {DisplayValue("COMMON COLLECTION MOVIES", commonCollectionMovies)}
+              {DisplayValue("COMMON WATCHLIST MOVIES", commonWatchlistMovies)}
+
+            </div>
+            )}
+          </div>
+        
+      </div>
+
+
+
+
+      {/*=======================================================================================================================================================*/}
+      {/* FRIEND REQUEST SECTION */}
+      {/*=======================================================================================================================================================*/}
+      <div className=" w-1/6 h-full self-end pt-[6%] pb-[4%] px-4">
+        {currentUser && currentUser.uid === userId && (
+          <div>
+            <div className="flex flex-row mx-auto text-center pb-6 justify-evenly items-center">
+              <div className="text-2xl">FRIEND REQUESTS</div>
+              <div className="flex justify-center items-center w-8 h-8 fill-black/70 stroke-black/70 bg-slate-200/20 rounded-md transition duration-500 ease-out hover:text-white/80 hover:stroke-white/80 hover:fill-white/80 hover:brightness-150 hover:scale-110 will-change-transform">
+                <SearchImage className="size-4 stroke-1"></SearchImage>
+              </div>
+            </div>
+            {friendRequests}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default UserProfile;

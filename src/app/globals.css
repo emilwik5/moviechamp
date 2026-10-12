@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  
+}
+
+
+.bg-gradient-radial {
+  background-image: radial-gradient(var(--tw-gradient-stops));
+}
+
+.bg-gradient-radial-home {
+  /* Define the radial gradient */
+  background-image: radial-gradient(
+    /* Define the starting color at 10% from the center */
+    circle at 50% 100%, 
+    /* Define the color stops */
+    rgba(70, 118, 238, 0.512) 0%, /* Red */
+    rgba(0, 0, 0, 0) 60% /* Blue */
+  );
+}
+
+.bg-gradient-radial-home-hover {
+  /* Define the radial gradient */
+  background-image: radial-gradient(
+    /* Define the starting color at 10% from the center */
+    circle at 50% 100%, 
+    /* Define the color stops */
+    rgba(101, 79, 247, 0.558) 0%, /* Red */
+    rgba(0, 0, 0, 0) 50% /* Blue */
+  );
+}
+
+.bg-gradient-radial-play {
+  /* Define the radial gradient */
+  background-image: radial-gradient(
+    /* Define the starting color at 10% from the center */
+    circle at 50% 100%, 
+    /* Define the color stops */
+    rgba(207, 36, 36, 0.512) 0%, /* Red */
+    rgba(0, 0, 0, 0) 60% /* Blue */
+  );
+}
+
+.bg-gradient-radial-movies {
+  /* Define the radial gradient */
+  background-image: radial-gradient(
+    /* Define the starting color at 10% from the center */
+    circle at 50% 100%, 
+    /* Define the color stops */
+    rgba(39, 207, 36, 0.512) 0%, /* Red */
+    rgba(0, 0, 0, 0) 60% /* Blue */
+  );
+}
+
+.bg-gradient-radial-profile {
+  /* Define the radial gradient */
+  background-image: radial-gradient(
+    /* Define the starting color at 10% from the center */
+    circle at 50% 100%, 
+    /* Define the color stops */
+    rgba(207, 176, 36, 0.512) 0%, /* Red */
+    rgba(0, 0, 0, 0) 60% /* Blue */
+  );
+}
+
+

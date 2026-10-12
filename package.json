@@ -1,0 +1,40 @@
+{
+  "name": "movie-beast",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tabler/icons-react": "^3.4.0",
+    "@tsparticles/engine": "^3.4.0",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.4.0",
+    "clsx": "^2.1.1",
+    "firebase": "^10.11.1",
+    "framer-motion": "^11.2.3",
+    "install": "^0.13.0",
+    "next": "14.1.4",
+    "node-fetch": "^2.7.0",
+    "npm": "^10.7.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-firebase-hooks": "^5.1.1",
+    "react-timeago": "^7.2.0",
+    "tailwind-merge": "^2.3.0"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
+    "@types/node": "20.12.7",
+    "@types/react": "18.2.75",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "5.4.4"
+  }
+}
