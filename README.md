@@ -1,8 +1,8 @@
-# TDDD27_2024-MovieBeast
+# Moviechamp
 
 ## Description
 
-Project for Advanced Web Programming (TDDD27) at Linköping University By Emil Wik and Victor Persson.
+Project developed and designed by Emil Wik and Victor Persson.
 
 ### Slogan
 
@@ -10,7 +10,7 @@ Project for Advanced Web Programming (TDDD27) at Linköping University By Emil W
 
 ### Project Idea
 
-The project is a realtime multiplayer quiz game where a user can create an account and play against other players in a variety of movie quizzes. The quizzes will be contained to "sessions" with up 30 users.
+The project is a realtime multiplayer quiz game where a user can create an account and play against other players in a variety of movie quizzes. The quizzes will be contained to "sessions" with up to 30 users.
 
 The user can add their favorite movies to their profile and rate them, so that more personalized quizzes can be created. The users can also add their friends and create quiz sessions. Users can also reate their own quizzes and allow the community to vote and participate with eachother.
 
